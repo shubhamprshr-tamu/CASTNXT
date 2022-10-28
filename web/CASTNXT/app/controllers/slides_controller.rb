@@ -22,6 +22,7 @@ class SlidesController < ApplicationController
       if is_user_logged_in?("USER")
         eventId = params[:event_id]
         talentId = session[:userId]
+        # This is the place where we have form data.
         formData = params[:formData]
         event = get_event(eventId)
         

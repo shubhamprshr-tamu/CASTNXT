@@ -11,6 +11,7 @@ class HomeController < ApplicationController
   def signup
     begin
       if new_user?(params[:email])
+        UserMailer.send_welcome(params[:email]).deliver_now
         create_user(params)
         currentUser = get_user(params[:email], params[:password])
         session[:userEmail] = currentUser.email
@@ -21,7 +22,8 @@ class HomeController < ApplicationController
       else
         render json: {comment: "An account with the given Email already exists!"}, status: 400
       end
-    rescue Exception
+    rescue => exception
+      puts exception.message
       render json: {comment: "Internal Error!"}, status: 500
     end
   end
