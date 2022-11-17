@@ -7,15 +7,13 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import Button from "@mui/material/Button";
-import { Link } from "react-router-dom";
-import axios from "axios";
 
 import Header from "../Navbar/Header";
 
 class AdminHomepage extends Component {
     constructor(props) {
         super(props)
-
+        console.log(properties);
         this.state = {
             tableData: properties.tableData !== undefined ? properties.tableData : []
         }
@@ -57,7 +55,7 @@ class AdminHomepage extends Component {
     }
 
     render() {
-        return(
+        return (
             <div>
                 <div>
                     <Header />

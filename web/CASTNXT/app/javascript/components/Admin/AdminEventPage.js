@@ -7,7 +7,6 @@ import Box from "@mui/material/Box";
 
 import Header from "../Navbar/Header";
 import AdminEventHome from "./AdminEventHome";
-import AdminCreateStack from "./AdminCreateStack";
 import AdminCreateClientStack from "./AdminCreateClientStack";
 import AdminClientDecks from "./AdminClientDecks";
 import AdminEventSummary from "./AdminEventSummary";
@@ -17,11 +16,13 @@ import AdminCreateWithFilter from "./AdminCreateWithFilter";
 class AdminEventPage extends Component {
     constructor(props) {
         super(props)
-        
-        //console.log(`Props: ${JSON.stringify(properties)}`)
         this.state = {
             title: properties.data.title,
             description: properties.data.description,
+            location: properties.data.location,
+            statename: properties.data.statename, 
+            eventdate: properties.data.eventdate, 
+            category: properties.data.category,
             tabValue: 0
         }
     }
@@ -47,6 +48,9 @@ class AdminEventPage extends Component {
                     <div className="user-events">
                         <h2> {this.state.title} </h2>
                         <h6> {this.state.description} </h6>
+                        <h6>Location : {this.state.location}, {this.state.statename}</h6>
+                        <h6>Date : {this.state.eventdate}</h6>
+                        <h6>Category : {this.state.category}</h6>
                         
                         <Button size="small" variant="outlined" style={{float: "right", marginRight: "1%"}} onClick={this.back}>Back to Forms</Button>
 
@@ -73,9 +77,6 @@ class AdminEventPage extends Component {
                                   <div>
                                     <AdminCreateWithFilter properties={properties} />
                                   </div>
-                                  /*<div>
-                                    <AdminCreateStack properties={properties} />
-                                  </div>*/
                               }
                               
                               {this.state.tabValue === 2 &&
