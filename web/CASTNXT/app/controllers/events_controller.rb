@@ -36,6 +36,21 @@ class EventsController < ApplicationController
         event = get_event(eventId)
         
         update_event_status(event, params[:status])
+        puts("step 1")
+        if(params[:status] == "DELETED")
+          talents = Talent.all
+          talents.each do |talent|
+            puts("step 2")
+            if talent_slide_exists?(eventId, talent.id)
+              event = get_event(eventId)
+              puts("step 3")
+              UserMailer.deleted_event(talent.email, event.title, event.delete_time).deliver_now
+              puts(talent.email)
+              puts(event.title)
+              puts("step 4")
+            end
+          end
+        end
         render json: {comment: "Updated Event Status!"}, status: 200
       else
         render json: {redirect_path: "/"}, status: 403
@@ -82,6 +97,7 @@ class EventsController < ApplicationController
     data[:statename] = event.statename
     data[:eventdate] = event.eventdate
     data[:category] = event.category
+    data[:is_paid_event] = event.is_paid_event
     
     
     if talent_slide_exists?(eventId, session[:userId])
@@ -114,6 +130,7 @@ class EventsController < ApplicationController
     data[:statename] = event.statename
     data[:eventdate] = event.eventdate
     data[:category] = event.category
+    data[:is_paid_event] = event.is_paid_event
     
     data[:clients] = build_producer_event_clients(event)
     data[:slides] = build_producer_event_slides(event)
@@ -147,6 +164,7 @@ class EventsController < ApplicationController
     data[:statename] = event.statename
     data[:eventdate] = event.eventdate
     data[:category] = event.category
+    data[:is_paid_event] = event.is_paid_event
     
     data[:slides] = build_client_event_slides(event, client)
     
@@ -235,6 +253,7 @@ class EventsController < ApplicationController
   
   def update_event_status event, status
     event.update(:status => status)
+    event.update(:delete_time => Time.now)
   end
   
   def get_event eventId
@@ -286,6 +305,10 @@ class EventsController < ApplicationController
   end
   
   def create_event producerId, params
-    Event.create(:form_id => params[:form_id], :producer_id => producerId, :status => "ACCEPTING", :title => params[:title], :description => params[:description], :location => params[:location], :statename => params[:statename], :eventdate => params[:eventdate], :category => params[:category])
+    timeval = Time.now
+    #puts("here here yess")
+    #puts(timeval)
+    Event.create(:form_id => params[:form_id], :producer_id => producerId, :status => "ACCEPTING", :title => params[:title], :description => params[:description], :location => params[:location], :statename => params[:statename], :eventdate => params[:eventdate], :category => params[:category], :delete_time => "timeval", :is_paid_event => params[:is_paid_event])
+
   end
 end
