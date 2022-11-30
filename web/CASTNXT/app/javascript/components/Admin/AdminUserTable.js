@@ -22,12 +22,11 @@ class AdminUserTable extends Component {
       let rows = []
       let schema = this.props.properties.data.schema.properties
       Object.keys(schema).forEach(key => {
-        let existingColumn = columns.find(column => column.field === key)
-        if (!existingColumn) {
+        if(!key.startsWith('file')){
           const type = DATA_GRID_TYPES_MAP[schema[key].type];
           const columnConfig = {field: key, headerName: schema[key].title, minWidth: 150, type};
           if (type === 'number'){
-            columnConfig.filterOperators = extendedNumberOperators;
+              columnConfig.filterOperators = extendedNumberOperators;
           }
           columns.push(columnConfig);
         }
@@ -96,6 +95,7 @@ class AdminUserTable extends Component {
                   <div className="col-md-8 offset-md-2" style={{marginTop: '10px'}}>
                     <Paper>
                       <DataGrid
+                        testId='userTableDataGrid'
                         rows={this.state.rows}
                         columns={this.state.columns}
                         pageSize={10}
