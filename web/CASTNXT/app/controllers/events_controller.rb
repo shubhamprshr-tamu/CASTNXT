@@ -22,7 +22,11 @@ class EventsController < ApplicationController
 
     forms = get_producer_forms(session[:userId])
     forms.each do |form|
-      formIds << form._id.to_str
+      fd = []
+      km = get_events(form._id)
+      fd << form._id.to_str
+      fd << km[0].title.to_str
+      formIds << fd
     end
 
     @properties = {name: session[:userName], formIds: formIds}
@@ -104,8 +108,16 @@ class EventsController < ApplicationController
       slide = get_talent_slide(eventId, session[:userId])
       data[:formData] = JSON.parse(slide.data)
     end
+    userTalent = Talent.find_by(:_id => session[:userId])
     
-    @properties = {name: session[:userName], data: data}
+    if userTalent[:talentData].nil?
+      newTalentData = {}
+    else
+      newTalentData = JSON.parse(userTalent[:talentData])
+    end
+   
+    
+    @properties = {name: session[:userName], data: data , talentData: newTalentData}
   end
   
   def producer_event
@@ -262,6 +274,10 @@ class EventsController < ApplicationController
   
   def get_producer_forms producerId
     return Form.where(:producer_id => producerId)
+  end
+
+  def get_events formId
+    return Event.where(:form_id => formId)
   end
   
   def get_form formId

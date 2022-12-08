@@ -1,4 +1,4 @@
-import React, {Component} from "react"
+import React, { Component} from "react"
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -9,7 +9,14 @@ import Paper from "@mui/material/Paper";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import MuiAlert from '@mui/material/Alert';
+import CategoryFilter from "../Filter/CategoryFilter";
+import Button from "@mui/material/Button";
+import LocationFilter from "../Filter/LocationFilter";
+import IsPaidFilter from "../Filter/IsPaidFilter";
+
 import Header from "../Navbar/Header";
+
+const commonStyle = {marginTop: "20px", marginBottom: "20px"}
 
 class UserHomepage extends Component {
     constructor(props) {
@@ -28,7 +35,12 @@ class UserHomepage extends Component {
             acceptingTableData: properties.acceptingTableData ? properties.acceptingTableData : [],
             submittedTableData: properties.submittedTableData ? properties.submittedTableData : [],
             eventDeletedFlag,
-            tabValue: 0
+            tabValue: 0,
+            categoryFilterTextValue: 'All', 
+            stateName: '', 
+            cityName: '', 
+            filteredTableData: properties.acceptingTableData ? properties.acceptingTableData : [], 
+            isPaidFilterValue: 'None'
         }
     }
     
@@ -38,11 +50,71 @@ class UserHomepage extends Component {
         })
     }
     
+    handleLocationFilterChange = (stateName, cityName) =>{
+        this.setState({
+            stateName,
+            cityName
+        })
+    }
+
+    onSubmit = () => {
+        let tableDataCopy = this.state.acceptingTableData;
+        
+        // Category Based Filtering
+        let categoryFilterValues = tableDataCopy.filter((event) => this.state.categoryFilterTextValue === 'All' ? true: this.state.categoryFilterTextValue === event.category)
+        
+        let finalFilterValues = categoryFilterValues
+        let stateFilterValues = null
+        let cityFilterValues = null
+        
+        // State Based Filtering
+        if(this.state.stateName) {
+            stateFilterValues = categoryFilterValues.filter((event) => {
+                return event.statename === this.state.stateName
+            })
+            finalFilterValues = stateFilterValues
+        }
+        
+        // City Based Filtering
+        if(this.state.cityName) {
+            cityFilterValues = stateFilterValues.filter((event) => {
+                return event.location === this.state.cityName
+            })
+            finalFilterValues = cityFilterValues
+        } else {
+            if(stateFilterValues) {
+                finalFilterValues = stateFilterValues
+            } else {
+                finalFilterValues = categoryFilterValues
+            }
+        }
+        
+        // IsPaid Based Filtering
+        finalFilterValues = finalFilterValues.filter((event) => this.state.isPaidFilterValue === 'None' ? true: this.state.isPaidFilterValue === event.ispaid)
+        
+        this.setState({
+            filteredTableData: finalFilterValues
+        })
+    }
+
+    
+    onCategoryFilterValueSelected = (categoryFilterValue) =>{
+        this.setState({
+            categoryFilterTextValue: categoryFilterValue
+        })
+    }
+    
+    onIsPaidFilterSelected = (isPaidValue) =>{
+        this.setState({
+            isPaidFilterValue: isPaidValue
+        })
+    }
+    
     renderAcceptingEventList() {
-        const { acceptingTableData } = this.state
+        const { acceptingTableData, filteredTableData } = this.state
         
         let rows = []
-        if (!acceptingTableData.length) {
+        if (!filteredTableData.length) {
             rows.push(
                  <TableRow key={0}>
                     <TableCell align="center">
@@ -51,11 +123,23 @@ class UserHomepage extends Component {
                  </TableRow>
             )
         } else {
-            acceptingTableData.map((event, i) => {
+            filteredTableData.map((event, i) => {
                 rows.push(
-                    <TableRow key={i}>
-                        <TableCell align="center" onClick={() => {window.location.href="/user/events/"+event.id}}>
+                    <TableRow key={i} onClick={() => {window.location.href="/user/events/"+event.id}}>
+                        <TableCell align="center" >
                             <b><a href={"/user/events/" + event.id}>{event.title}</a></b>
+                        </TableCell>
+                        <TableCell align="center" >
+                            <b>{event.category}</b>
+                        </TableCell>
+                        <TableCell align="center" >
+                            <b>{new Date(event.date).toLocaleDateString()}</b>
+                        </TableCell>
+                        <TableCell align="center" >
+                            <b>{event.location + ", " + event.statename}</b>
+                        </TableCell>
+                        <TableCell align="center" >
+                            <b>{event.ispaid}</b>
                         </TableCell>
                     </TableRow>
                 )
@@ -65,10 +149,10 @@ class UserHomepage extends Component {
     }
     
     renderSubmittedEventList(type) {
-        const { submittedTableData } = this.state
+        const { submittedTableData, filteredTableData } = this.state
         
         let rows = []
-        if (!submittedTableData.length) {
+        if (!filteredTableData.length) {
             rows.push(
                  <TableRow key={0}>
                     <TableCell colSpan={2} align="center">
@@ -77,7 +161,7 @@ class UserHomepage extends Component {
                  </TableRow>
             )
         } else {
-            submittedTableData.map((event, i) => {
+            filteredTableData.map((event, i) => {
                 if (event.accepting) {
                     rows.push(
                         <TableRow key={i}>
@@ -118,7 +202,7 @@ class UserHomepage extends Component {
                             this.state.eventDeletedFlag ? <MuiAlert onClick={() => (this.setState({eventDeletedFlag: false}))} severity="warning" elevation={6} variant="filled">Note: Certain events have been cancelled. Please check submissions for more details. Sorry for the inconvenience.</MuiAlert> : null
                         }
                         <div className="row">
-                            <h2> FashioNXT Events </h2>
+                            <h2> CastNXT Events </h2>
                         </div>
                         <div className="row">
                             <div className="col-md-6 offset-md-3">
@@ -129,17 +213,28 @@ class UserHomepage extends Component {
                                     </Tabs>
                                     <hr style={{ color: "black" }} />
                                 </div>
+                                
+                                <div><b>Category Filter</b></div>
+                                <CategoryFilter categoryFilterValueSelected = {this.onCategoryFilterValueSelected}></CategoryFilter>
+                                <LocationFilter handleLocationFilterChange = {this.handleLocationFilterChange}></LocationFilter>
+                                <div><b>Is the event paid ?</b></div>
+                                <IsPaidFilter isPaidFilterSelected = {this.onIsPaidFilterSelected}></IsPaidFilter>
+                                <Button variant="outlined" onClick = {this.onSubmit} style={commonStyle}>Submit Filter</Button> 
                             
                                 {this.state.tabValue === 0 &&
                                     <TableContainer component={Paper}>
                                         <Table aria-label="simple table">
                                             <TableHead style={{ backgroundColor: "#3498DB" }}>
                                                 <TableRow>
-                                                    <TableCell align="center" style={{fontSize: "12pt"}}>Events</TableCell>
+                                                    <TableCell align="center" style={{fontSize: "12pt"}}>Event</TableCell>
+                                                    <TableCell align="center" style={{fontSize: "12pt"}}>Category</TableCell>
+                                                    <TableCell align="center" style={{fontSize: "12pt"}}>Date</TableCell>
+                                                    <TableCell align="center" style={{fontSize: "12pt"}}>Location</TableCell>
+                                                    <TableCell align="center" style={{fontSize: "12pt"}}>Is Paid?</TableCell>
                                                 </TableRow>
                                             </TableHead>
                                             <TableBody>
-                                                <div id='eventList'>{this.renderAcceptingEventList()}</div>
+                                                {this.renderAcceptingEventList()}
                                             </TableBody>
                                         </Table>
                                     </TableContainer>
